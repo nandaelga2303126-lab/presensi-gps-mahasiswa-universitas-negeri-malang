@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Presensi Mahasiswa UM</title>
+</head>
+<body>
+
+<h2>Presensi Mahasiswa - Universitas Negeri Malang</h2>
+
+<input type="text" id="nim" placeholder="NIM"><br><br>
+<input type="text" id="nama" placeholder="Nama"><br><br>
+
+<button onclick="ambilLokasi()">Presensi</button>
+
+<p id="status"></p>
+
+<script>
+const TARGET_LAT = -7.96147;
+const TARGET_LON = 112.61787;
+const RADIUS = 20;
+
+function getDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371e3;
+  const φ1 = lat1 * Math.PI/180;
+  const φ2 = lat2 * Math.PI/180;
+  const Δφ = (lat2-lat1) * Math.PI/180;
+  const Δλ = (lon2-lon1) * Math.PI/180;
+
+  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ/2) * Math.sin(Δλ/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+  return R * c;
+}
+
+function ambilLokasi() {
+  if (!navigator.geolocation) {
+    alert("GPS tidak tersedia");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(function(position) {
+    var lat = position.coords.latitude;
+    var lon = position.coords.longitude;
+
+    const jarak = getDistance(lat, lon, TARGET_LAT, TARGET_LON);
+
+    if (jarak > RADIUS) {
+      document.getElementById("status").innerText = "❌ Anda di luar area UM";
+      return;
+    }
+
+    kirimData(lat, lon);
+
+  }, function() {
+    alert("Gagal mengambil lokasi");
+  });
+}
+
+function kirimData(lat, lon) {
+  var nim = document.getElementById("nim").value;
+  var nama = document.getElementById("nama").value;
+
+  fetch("PASTE_LINK_WEB_APP_DI_SINI", {
+    method: "POST",
+    body: JSON.stringify({
+      nim: nim,
+      nama: nama,
+      latitude: lat,
+      longitude: lon,
+      status: "Hadir"
+    })
+  })
+  .then(res => res.text())
+  .then(res => {
+    document.getElementById("status").innerText = "✅ Presensi Berhasil";
+  })
+}
+</script>
+
+</body>
+</html>
+
